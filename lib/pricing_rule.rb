@@ -6,7 +6,7 @@ class PricingRule
 
     def pricing_adjustment(items)
       apple_tvs = items.select { |item| item.sku == apple_tv.sku }
-      apple_tv.price if apple_tvs.count >= 3
+      apple_tv.price * (apple_tvs.count / 3).floor
     end
 
     private
