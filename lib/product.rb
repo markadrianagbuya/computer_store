@@ -13,4 +13,8 @@ class Product
     Product.new(sku: "atv", name: "Apple TV", price: 109.50),
     Product.new(sku: "vga", name: "VGA adapter", price: 30)
   ]
+
+  def self.find_by_sku(sku)
+    ALL_PRODUCTS.detect { |product| product.sku == sku }
+  end
 end

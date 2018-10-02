@@ -21,4 +21,12 @@ RSpec.describe Product do
       expect(product.price).to eq 1.25
     end
   end
+
+  describe ".find_by_sku" do
+    it "returns the product that has the matching sku" do
+      apple_tv_product = Product.find_by_sku("atv")
+      expect(apple_tv_product.sku).to eq "atv"
+      expect(apple_tv_product.name).to eq "Apple TV"
+    end
+  end
 end
