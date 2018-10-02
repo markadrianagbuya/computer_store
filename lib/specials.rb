@@ -2,6 +2,10 @@ require 'product'
 require 'pricing_rule'
 
 module Specials
+  def self.all_pricing_rules
+    [ThreeForTwoAppleTVs, FreeVGAWithMacBookPro, SuperIPadDeal].map(&:pricing_rule)
+  end
+
   class ThreeForTwoAppleTVs
     def self.pricing_rule
       apple_tv = Product.find_by_sku("atv")
