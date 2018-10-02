@@ -19,27 +19,28 @@ class PricingRule
 
   end
 
-  def initialize(discount, required_item_amounts)
-    self.required_item_amounts = required_item_amounts
+  def initialize(discount, bundle_amounts)
     self.discount = discount
+    self.bundle_amounts = bundle_amounts
   end
 
   def pricing_adjustment(items)
-    bundles_in_items(items) * discount
+    item_amounts = generate_item_amounts(items)
+
+    bundles_in_items(item_amounts) * discount
   end
 
   private 
 
-  attr_accessor :required_item_amounts, :discount
+  attr_accessor :bundle_amounts, :discount
 
-  def bundles_in_items(items)
-    required_item_amounts.keys.map do |sku|
-      (item_amounts(items)[sku] / required_item_amounts[sku]).floor
+  def bundles_in_items(item_amounts)
+    bundle_amounts.map do |sku, bundle_amount|
+      item_amounts[sku] / bundle_amount
     end.min
   end
 
-  def item_amounts(items)
-    # prevent calculating all the time
+  def generate_item_amounts(items)
     items.each_with_object(Hash.new(0)) do |item, amounts|
       amounts[item.sku] += 1
     end
