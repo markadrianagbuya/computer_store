@@ -35,5 +35,15 @@ RSpec.describe Checkout do
       checkout = Checkout.new([pricing_rule], three_apple_tvs)
       expect(checkout.total).to eq apple_tv.price * 2
     end
+
+    it "applies the apple tv deal if applicable" do
+      apple_tv = Product.find_by_sku("atv")
+      three_apple_tvs = Array.new(3) { apple_tv }
+
+      pricing_rule = PricingRule::ThreeForTwoAppleTVs.new
+      
+      checkout = Checkout.new([pricing_rule], three_apple_tvs)
+      expect(checkout.total).to eq apple_tv.price * 2
+    end
   end
 end
