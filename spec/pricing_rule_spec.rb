@@ -61,7 +61,6 @@ RSpec.describe PricingRule do
         vga_cable = Product.find_by_sku("vga")
         macbook_pro = Product.find_by_sku("mbp")
 
-        pricing_rule = PricingRule::ThreeForTwoAppleTVs.new
         pricing_rule = PricingRule::FreeVGAWithMacBookPro.new
         discount = pricing_rule.pricing_adjustment([vga_cable, vga_cable, macbook_pro, macbook_pro, vga_cable])
         expect(discount).to eq vga_cable.price * 2
