@@ -1,29 +1,4 @@
 class PricingRule
-
-  class ThreeForTwoAppleTVs < PricingRule
-    def initialize
-      apple_tv = Product.find_by_sku("atv")
-      super(apple_tv.price, apple_tv.sku => 3)
-    end
-  end
-
-  class FreeVGAWithMacBookPro < PricingRule
-    def initialize
-      vga_cable = Product.find_by_sku("vga")
-      super(vga_cable.price, vga_cable.sku => 1, "mbp" => 1)
-    end
-  end
-
-  class SuperIPadDeal < PricingRule
-    DISCOUNTED_IPAD_PRICE = 499.99
-
-    def initialize
-      super_ipad = Product.find_by_sku("ipd")
-      ipad_discount = super_ipad.price - DISCOUNTED_IPAD_PRICE
-      super(ipad_discount, { super_ipad.sku => 1 }, { super_ipad.sku => 4 })
-    end
-  end
-
   def initialize(discount, bundle_amounts, thresholds = {})
     self.discount = discount
     self.bundle_amounts = bundle_amounts

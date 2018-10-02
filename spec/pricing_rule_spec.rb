@@ -2,109 +2,53 @@ require 'pricing_rule'
 require 'product'
 
 RSpec.describe PricingRule do
-  context "ThreeForTwoAppleTVs" do
-    describe "#pricing_adjustment" do
-      it "is minus the price of an apple tv if there are 3 apple tvs scanned" do
-        apple_tv = Product.find_by_sku("atv")
-        three_apple_tvs = Array.new(3) { apple_tv }
-
-        pricing_rule = PricingRule::ThreeForTwoAppleTVs.new
-        expect(pricing_rule.pricing_adjustment(three_apple_tvs)).to eq apple_tv.price
-      end
-
-      it "is zero if there aren't enough apple_tvs" do
-        apple_tv = Product.find_by_sku("atv")
-        three_apple_tvs = Array.new(2) { apple_tv }
-
-        pricing_rule = PricingRule::ThreeForTwoAppleTVs.new
-        expect(pricing_rule.pricing_adjustment(three_apple_tvs)).to eq 0
-      end
-
-      it "applies the pricing adjustment twice if there are two bundles" do
-        apple_tv = Product.find_by_sku("atv")
-        three_apple_tvs = Array.new(7) { apple_tv }
-
-        pricing_rule = PricingRule::ThreeForTwoAppleTVs.new
-        expect(pricing_rule.pricing_adjustment(three_apple_tvs)).to eq apple_tv.price * 2
-      end
+  describe "#pricing_adjustment" do
+    it "doesn't apply any discount if the bundle does not exist in items" do
+      pricing_rule = PricingRule.new(50, { "sku" => 1 })
+      expect(pricing_rule.pricing_adjustment([])).to eq 0
     end
-  end
 
-  context "FreeVGAWithMacBookPro" do
-    describe "#pricing_adjustment" do
-      it "is minus the price of a VGA cable if there is also a macbook pro scanned" do
-        vga_cable = Product.find_by_sku("vga")
-        macbook_pro = Product.find_by_sku("mbp")
+    it "applies the discount if the bundle exists in items" do
+      items = [Product.new(sku: "sku", name: "A Product", price: "100.23")]
+      pricing_rule = PricingRule.new(50, { "sku" => 1 })
 
-        pricing_rule = PricingRule::FreeVGAWithMacBookPro.new
-        discount = pricing_rule.pricing_adjustment([vga_cable, macbook_pro])
-        expect(discount).to eq vga_cable.price
-      end
-
-      it "doesn't apply the discount unless the vga cable is scanned" do
-        macbook_pro = Product.find_by_sku("mbp")
-
-        pricing_rule = PricingRule::FreeVGAWithMacBookPro.new
-        discount = pricing_rule.pricing_adjustment([macbook_pro])
-        expect(discount).to eq 0
-      end
-
-      it "doesn't apply the discount unless the macbook pro is scanned" do
-        vga_cable = Product.find_by_sku("vga")
-
-        pricing_rule = PricingRule::FreeVGAWithMacBookPro.new
-        discount = pricing_rule.pricing_adjustment([vga_cable])
-        expect(discount).to eq 0
-      end
-
-      it "applies the pricing adjustment twice if there are two bundles" do
-        vga_cable = Product.find_by_sku("vga")
-        macbook_pro = Product.find_by_sku("mbp")
-
-        pricing_rule = PricingRule::FreeVGAWithMacBookPro.new
-        discount = pricing_rule.pricing_adjustment([vga_cable, vga_cable, macbook_pro, macbook_pro, vga_cable])
-        expect(discount).to eq vga_cable.price * 2
-      end
+      expect(pricing_rule.pricing_adjustment(items)).to eq 50
     end
-  end
 
-  context "SuperIPadDeal" do
-    describe "#pricing_adjustment" do
-      it "applies a discount if there are 4 ipads" do
-        ipad = Product.find_by_sku("ipd")
-        four_ipads = Array.new(4) { ipad }
+    it "applies the discount if the bundle exists in items and meets the threshold" do
+      product = Product.new(sku: "sku", name: "A Product", price: "100.23")
+      items = Array.new(3) { product }
+      pricing_rule = PricingRule.new(50, { "sku" => 1 }, { "sku" => 3 })
 
-        pricing_rule = PricingRule::SuperIPadDeal.new
-        discount = pricing_rule.pricing_adjustment(four_ipads)
-        expect(discount).to eq (ipad.price - PricingRule::SuperIPadDeal::DISCOUNTED_IPAD_PRICE) * 4
-      end
+      expect(pricing_rule.pricing_adjustment(items)).to eq 150
+    end
 
-      it "applies a discount if there are 8 ipads" do
-        ipad = Product.find_by_sku("ipd")
-        four_ipads = Array.new(8) { ipad }
+    it "does not apply the discount if the bundle exists in items but does not meet the threshold" do
+      product = Product.new(sku: "sku", name: "A Product", price: "100.23")
+      items = Array.new(2) { product }
+      pricing_rule = PricingRule.new(50, { "sku" => 1 }, { "sku" => 3 })
 
-        pricing_rule = PricingRule::SuperIPadDeal.new
-        discount = pricing_rule.pricing_adjustment(four_ipads)
-        expect(discount).to eq (ipad.price - PricingRule::SuperIPadDeal::DISCOUNTED_IPAD_PRICE) * 8
-      end
+      expect(pricing_rule.pricing_adjustment(items)).to eq 0
+    end
 
-      it "applies a discount if there are 6 ipads" do
-        ipad = Product.find_by_sku("ipd")
-        four_ipads = Array.new(6) { ipad }
+    it "applies the discount if the bundle has more than one item and exists in items" do
+      product = Product.new(sku: "sku", name: "A Product", price: "100.23")
+      other_product = Product.new(sku: "sk2", name: "A Product", price: "100.23")
+      items = [product, other_product, other_product]
 
-        pricing_rule = PricingRule::SuperIPadDeal.new
-        discount = pricing_rule.pricing_adjustment(four_ipads)
-        expect(discount).to eq (ipad.price - PricingRule::SuperIPadDeal::DISCOUNTED_IPAD_PRICE) * 6
-      end
+      pricing_rule = PricingRule.new(90, { "sku" => 1, "sk2" => 2 })
 
-      it "doesn't apply a discount if there are not at least 4 ipads" do
-        ipad = Product.find_by_sku("ipd")
-        four_ipads = Array.new(3) { ipad }
+      expect(pricing_rule.pricing_adjustment(items)).to eq 90
+    end
 
-        pricing_rule = PricingRule::SuperIPadDeal.new
-        discount = pricing_rule.pricing_adjustment(four_ipads)
-        expect(discount).to eq 0
-      end
+    it "applies the discount multiple times if the bundle exists in items multiple times" do
+      product = Product.new(sku: "sku", name: "A Product", price: "100.23")
+      other_product = Product.new(sku: "sk2", name: "A Product", price: "100.23")
+      items = [product, other_product, other_product, product, other_product, other_product]
+
+      pricing_rule = PricingRule.new(90, { "sku" => 1, "sk2" => 2 })
+
+      expect(pricing_rule.pricing_adjustment(items)).to eq 180
     end
   end
 end
