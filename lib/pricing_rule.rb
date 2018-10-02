@@ -1,7 +1,7 @@
 class PricingRule
   class ThreeForTwoAppleTVs
     def initialize
-      self.apple_tv = Product.find_by_sku("atv")
+      apple_tv = Product.find_by_sku("atv")
       self.pricing_rule = PricingRule.new(apple_tv.price, apple_tv.sku => 3)
     end
 
@@ -11,7 +11,22 @@ class PricingRule
 
     private
 
-    attr_accessor :apple_tv, :pricing_rule
+    attr_accessor :pricing_rule
+  end
+
+  class FreeVGAWithMacBookPro
+    def initialize
+      vga_cable = Product.find_by_sku("vga")
+      self.pricing_rule = PricingRule.new(vga_cable.price, vga_cable.sku => 1, "mbp" => 1)
+    end
+
+    def pricing_adjustment(items)
+      pricing_rule.pricing_adjustment(items)
+    end
+
+    private
+
+    attr_accessor :pricing_rule
   end
 
   def initialize(discount, required_item_amounts)
