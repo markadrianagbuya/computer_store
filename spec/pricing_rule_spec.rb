@@ -67,4 +67,44 @@ RSpec.describe PricingRule do
       end
     end
   end
+
+  context "SuperIPadDeal" do
+    describe "#pricing_adjustment" do
+      it "applies a discount if there are 4 ipads" do
+        ipad = Product.find_by_sku("ipd")
+        four_ipads = Array.new(4) { ipad }
+
+        pricing_rule = PricingRule::SuperIPadDeal.new
+        discount = pricing_rule.pricing_adjustment(four_ipads)
+        expect(discount).to eq (ipad.price - PricingRule::SuperIPadDeal::DISCOUNTED_IPAD_PRICE) * 4
+      end
+
+      it "applies a discount if there are 8 ipads" do
+        ipad = Product.find_by_sku("ipd")
+        four_ipads = Array.new(8) { ipad }
+
+        pricing_rule = PricingRule::SuperIPadDeal.new
+        discount = pricing_rule.pricing_adjustment(four_ipads)
+        expect(discount).to eq (ipad.price - PricingRule::SuperIPadDeal::DISCOUNTED_IPAD_PRICE) * 8
+      end
+
+      it "applies a discount if there are 6 ipads" do
+        ipad = Product.find_by_sku("ipd")
+        four_ipads = Array.new(6) { ipad }
+
+        pricing_rule = PricingRule::SuperIPadDeal.new
+        discount = pricing_rule.pricing_adjustment(four_ipads)
+        expect(discount).to eq (ipad.price - PricingRule::SuperIPadDeal::DISCOUNTED_IPAD_PRICE) * 6
+      end
+
+      it "doesn't apply a discount if there are not at least 4 ipads" do
+        ipad = Product.find_by_sku("ipd")
+        four_ipads = Array.new(3) { ipad }
+
+        pricing_rule = PricingRule::SuperIPadDeal.new
+        discount = pricing_rule.pricing_adjustment(four_ipads)
+        expect(discount).to eq 0
+      end
+    end
+  end
 end
